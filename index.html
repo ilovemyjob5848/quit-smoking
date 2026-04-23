@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>護肺小精靈戒菸追蹤器</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --card-bg: #ffffff;
+      --card-border: rgba(0,0,0,0.08);
+      --body-bg: #fff5f9;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --text-muted: #9ca3af;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --card-bg: #1e1b2e;
+        --card-border: rgba(255,255,255,0.08);
+        --body-bg: #13111f;
+        --text-primary: #f3f4f6;
+        --text-secondary: #9ca3af;
+        --text-muted: #6b7280;
+      }
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--body-bg);
+      min-height: 100vh;
+      padding: 1.5rem 1rem 3rem;
+    }
+
+    /* ── 登入遮罩 ── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(255, 245, 249, 0.97);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      gap: 16px;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    .name-input {
+      border: 2px solid #f9a8d4;
+      border-radius: 16px;
+      padding: 12px 20px;
+      font-size: 18px;
+      font-family: 'Nunito', sans-serif;
+      font-weight: 700;
+      text-align: center;
+      outline: none;
+      width: 260px;
+      color: #1f2937;
+      background: #fff;
+    }
+
+    .name-input:focus { border-color: #db2777; }
+
+    .btn-start {
+      background: #fce7f3;
+      color: #9d174d;
+      border: none;
+      border-radius: 20px;
+      padding: 12px 36px;
+      font-size: 16px;
+      font-weight: 800;
+      font-family: 'Nunito', sans-serif;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    .btn-start:hover { transform: scale(1.04); }
+
+    /* ── 主畫面 ── */
+    .app { max-width: 480px; margin: 0 auto; }
+
+    .header { text-align: center; margin-bottom: 1.5rem; }
+    .header h1 { font-size: 26px; font-weight: 900; color: var(--text-primary); letter-spacing: -0.5px; }
+    .header p { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 12px rgba(249,168,212,0.12);
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.9rem;
+    }
+
+    .fairy-face {
+      width: 96px; height: 96px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 52px;
+      margin: 0 auto 0.75rem;
+      transition: background 0.4s ease, transform 0.3s ease;
+    }
+
+    .fairy-face.bounce { animation: bounce 0.4s ease; }
+
+    @keyframes bounce {
+      0%   { transform: scale(1); }
+      40%  { transform: scale(1.2); }
+      70%  { transform: scale(0.95); }
+      100% { transform: scale(1); }
+    }
+
+    .mood-label { font-size: 16px; font-weight: 800; text-align: center; transition: color 0.4s; }
+    .mood-msg { font-size: 13px; color: var(--text-secondary); text-align: center; margin-top: 6px; }
+
+    .counter-row { display: flex; align-items: center; justify-content: center; gap: 24px; }
+
+    .counter-num {
+      font-size: 60px; font-weight: 900;
+      color: var(--text-primary);
+      line-height: 1; min-width: 80px; text-align: center;
+      transition: transform 0.15s;
+    }
+
+    .counter-num.pop { animation: pop 0.2s ease; }
+
+    @keyframes pop {
+      0%   { transform: scale(1); }
+      50%  { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+
+    .btn-add {
+      width: 60px; height: 60px;
+      border-radius: 50%; border: none;
+      font-size: 28px; cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+      background: #fce7f3; color: #db2777;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Nunito', sans-serif; font-weight: 900;
+      box-shadow: 0 4px 12px rgba(249,168,212,0.4);
+    }
+
+    .btn-add:hover  { transform: scale(1.05); box-shadow: 0 6px 16px rgba(249,168,212,0.5); }
+    .btn-add:active { transform: scale(0.92); }
+
+    .btn-minus {
+      width: 44px; height: 44px;
+      border-radius: 50%; border: 1px solid var(--card-border);
+      font-size: 22px; cursor: pointer;
+      transition: transform 0.15s;
+      background: var(--body-bg); color: var(--text-secondary);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Nunito', sans-serif; font-weight: 700;
+    }
+
+    .btn-minus:hover  { background: #ffe4e6; color: #e11d48; }
+    .btn-minus:active { transform: scale(0.92); }
+
+    .saving-msg { font-size: 12px; text-align: center; margin-top: 12px; color: var(--text-muted); }
+
+    .mood-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+
+    .mood-card {
+      background: var(--body-bg);
+      border-radius: 14px; padding: 10px 6px; text-align: center;
+      border: 2px solid transparent;
+      transition: border 0.25s, background 0.25s;
+    }
+
+    .mood-card.active { border-color: #f9a8d4; background: #fff0f9; }
+
+    @media (prefers-color-scheme: dark) {
+      .mood-card.active { background: #2d1b33; }
+    }
+
+    .mood-emoji { font-size: 28px; }
+    .mood-name  { font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-top: 5px; line-height: 1.4; }
+
+    .streak-row { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+
+    .day-dot {
+      width: 52px; border-radius: 12px; padding: 6px 0;
+      text-align: center; display: flex; flex-direction: column;
+      align-items: center; gap: 3px; border: 2px solid transparent;
+    }
+
+    .day-dot .day-label { font-size: 11px; font-weight: 700; }
+    .day-dot .day-val   { font-size: 15px; font-weight: 900; }
+
+    .log-entry {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 13px; color: var(--text-secondary);
+      padding: 7px 0; border-bottom: 0.5px solid var(--card-border);
+    }
+
+    .log-entry:last-child { border-bottom: none; }
+
+    .badge { display: inline-block; font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 20px; }
+
+    .btn-reset {
+      background: none; border: 1px solid var(--card-border);
+      border-radius: 20px; padding: 8px 20px;
+      font-size: 13px; font-weight: 700; color: var(--text-muted);
+      cursor: pointer; font-family: 'Nunito', sans-serif;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .btn-reset:hover { border-color: #f9a8d4; color: #db2777; }
+
+    .bottom-row { display: flex; justify-content: center; gap: 10px; margin-top: 0.5rem; flex-wrap: wrap; }
+
+    .date-badge {
+      display: inline-block;
+      background: #fce7f3; color: #9d174d;
+      font-size: 12px; font-weight: 800;
+      padding: 4px 14px; border-radius: 20px; margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ✅ 登入遮罩：輸入名字 + 身分證 -->
+  <div class="overlay" id="loginOverlay">
+    <div style="font-size: 52px;">🧚</div>
+    <div style="font-size: 22px; font-weight: 900; color: #1f2937;">護肺小精靈</div>
+    <div style="font-size: 14px; color: #6b7280; text-align:center;">請輸入資料開始記錄</div>
+    <input
+      class="name-input"
+      id="nameInput"
+      type="text"
+      placeholder="姓名，例如：王小明"
+      maxlength="20"
+    />
+    <input
+      class="name-input"
+      id="idInput"
+      type="text"
+      placeholder="身分證字號，例如：A123456789"
+      maxlength="10"
+      style="text-transform:uppercase; letter-spacing: 2px;"
+    />
+    <div id="loginError" style="font-size:12px;color:#e11d48;font-weight:700;min-height:16px;"></div>
+    <button class="btn-start" onclick="startApp()">開始記錄 🌿</button>
+  </div>
+
+  <!-- 主畫面 -->
+  <div class="app">
+
+    <div class="header">
+      <div style="font-size: 36px; margin-bottom: 6px;">🧚</div>
+      <h1>護肺小精靈</h1>
+      <p>一起守護你的肺，打造美好生活！</p>
+      <!-- ✅ 顯示使用者名字 -->
+      <div id="userBadge" style="
+        display: inline-block;
+        background: #fce7f3; color: #9d174d;
+        font-size: 13px; font-weight: 800;
+        padding: 4px 14px; border-radius: 20px;
+        margin-top: 6px;
+      "></div>
+      <div class="date-badge" id="dateBadge"></div>
+    </div>
+
+    <!-- 小精靈心情 -->
+    <div class="card" style="text-align: center;">
+      <div id="fairyFace" class="fairy-face" style="background: #d1fae5;">🧚</div>
+      <div id="moodLabel" class="mood-label" style="color: #059669;">超開心！今天沒抽菸</div>
+      <div id="moodMsg" class="mood-msg">小精靈為你驕傲 ✨</div>
+    </div>
+
+    <!-- 計數器 -->
+    <div class="card">
+      <div class="section-title">今日吸菸紀錄</div>
+      <div class="counter-row">
+        <button class="btn-minus" onclick="changeCount(-1)">－</button>
+        <div style="text-align: center;">
+          <div class="counter-num" id="countNum">0</div>
+          <div style="font-size: 13px; color: var(--text-muted); margin-top: 2px; font-weight: 700;">根</div>
+        </div>
+        <button class="btn-add" onclick="changeCount(1)">＋</button>
+      </div>
+      <div class="saving-msg" id="savingMsg">今天 0 根 — 省了 NT$0，繼續加油！</div>
+    </div>
+
+    <!-- 心情狀態 -->
+    <div class="card">
+      <div class="section-title">小精靈的心情狀態</div>
+      <div class="mood-grid">
+        <div class="mood-card active" id="mc0">
+          <div class="mood-emoji">🥰</div>
+          <div class="mood-name">0根<br>超開心</div>
+        </div>
+        <div class="mood-card" id="mc1">
+          <div class="mood-emoji">😊</div>
+          <div class="mood-name">1–3根<br>還好</div>
+        </div>
+        <div class="mood-card" id="mc2">
+          <div class="mood-emoji">😟</div>
+          <div class="mood-name">4–9根<br>擔心</div>
+        </div>
+        <div class="mood-card" id="mc3">
+          <div class="mood-emoji">😢</div>
+          <div class="mood-name">10根+<br>很難過</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 本週紀錄 -->
+    <div class="card">
+      <div class="section-title">本週紀錄（根）</div>
+      <div class="streak-row" id="streakRow"></div>
+    </div>
+
+    <!-- Log -->
+    <div class="card">
+      <div class="section-title">今日紀錄 Log</div>
+      <div id="logList">
+        <div style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 10px 0;">尚無紀錄，按 ＋ 開始記錄</div>
+      </div>
+    </div>
+
+    <div class="bottom-row">
+      <button class="btn-reset" onclick="resetToday()">🔄 重置今日</button>
+    </div>
+
+  </div>
+
+  <script>
+    // ✅ 貼上你的 GAS Web App 網址
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzBHtHGJ6T3RkWcBSc17YtYxtByubzFpe31Vb3IVAwdG1agmWmog-OivV7imVNsRHLC/exec";
+
+    let userName = '';
+    let userId = '';
+    let count = 0;
+    const pricePerCig = 10;
+    const logs = [];
+    const weekData = [0, 0, 0, 0, 0, 0, 0];
+    const dayNames = ['一', '二', '三', '四', '五', '六', '日'];
+    const today = new Date();
+    const todayIdx = today.getDay() === 0 ? 6 : today.getDay() - 1;
+
+    const moods = [
+      { min: 0,  max: 0,        emoji: '🧚', bg: '#d1fae5', color: '#059669', label: '超開心！今天沒抽菸',    msg: '小精靈為你驕傲 ✨' },
+      { min: 1,  max: 3,        emoji: '😊', bg: '#fef9c3', color: '#d97706', label: '還可以，繼續加油！',    msg: '少一根就是進步 🌿' },
+      { min: 4,  max: 9,        emoji: '😟', bg: '#ffe4e6', color: '#e11d48', label: '小精靈有點擔心你…',  msg: '喝杯水、深呼吸試試 💧' },
+      { min: 10, max: Infinity, emoji: '😢', bg: '#fce7f3', color: '#9d174d', label: '嗚嗚…肺好難受',        msg: '明天重新開始，你可以的 🫁' },
+    ];
+
+    function getMood(n) {
+      return moods.find(m => n >= m.min && n <= m.max);
+    }
+
+    // ✅ 按下「開始記錄」後執行
+    function startApp() {
+      const nameVal = document.getElementById('nameInput').value.trim();
+      const idVal   = document.getElementById('idInput').value.trim().toUpperCase();
+      const errEl   = document.getElementById('loginError');
+
+      if (!nameVal) { errEl.textContent = '⚠️ 請輸入姓名'; return; }
+      if (!idVal)   { errEl.textContent = '⚠️ 請輸入身分證字號'; return; }
+
+      // 身分證格式驗證（1碼英文 + 9碼數字）
+      if (!/^[A-Z][0-9]{9}$/.test(idVal)) {
+        errEl.textContent = '⚠️ 身分證格式不正確（1碼英文+9碼數字）';
+        return;
+      }
+
+      errEl.textContent = '';
+      userName = nameVal;
+      userId   = idVal;
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('userBadge').textContent = '👤 ' + userName + ' 的紀錄';
+    }
+
+    // 按 Enter 也能送出
+    document.getElementById('nameInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') document.getElementById('idInput').focus();
+    });
+    document.getElementById('idInput').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') startApp();
+    });
+
+    function updateUI() {
+      const m = getMood(count);
+      const face = document.getElementById('fairyFace');
+      face.style.background = m.bg;
+      face.textContent = m.emoji;
+      face.classList.remove('bounce');
+      void face.offsetWidth;
+      face.classList.add('bounce');
+
+      document.getElementById('moodLabel').textContent = m.label;
+      document.getElementById('moodLabel').style.color = m.color;
+      document.getElementById('moodMsg').textContent = m.msg;
+
+      const numEl = document.getElementById('countNum');
+      numEl.textContent = count;
+      numEl.classList.remove('pop');
+      void numEl.offsetWidth;
+      numEl.classList.add('pop');
+
+      const saved = Math.max(0, (20 - count) * pricePerCig);
+      document.getElementById('savingMsg').textContent =
+        '今天 ' + count + ' 根 — 省了 NT$' + saved + '（每根約 NT$10）';
+
+      const moodIdx = moods.indexOf(m);
+      document.querySelectorAll('.mood-card').forEach((el, i) => {
+        el.classList.toggle('active', i === moodIdx);
+      });
+
+      weekData[todayIdx] = count;
+      renderStreak();
+    }
+
+    function renderStreak() {
+      const row = document.getElementById('streakRow');
+      row.innerHTML = '';
+      weekData.forEach(function(v, i) {
+        const dot = document.createElement('div');
+        dot.className = 'day-dot';
+        let bg, col;
+        if (v === 0)     { bg = '#d1fae5'; col = '#065f46'; }
+        else if (v <= 3) { bg = '#fef9c3'; col = '#92400e'; }
+        else if (v <= 9) { bg = '#ffe4e6'; col = '#9f1239'; }
+        else             { bg = '#fce7f3'; col = '#831843'; }
+        dot.style.background = bg;
+        if (i === todayIdx) dot.style.border = '2px solid #f9a8d4';
+        dot.innerHTML =
+          '<div class="day-label" style="color:' + col + '">週' + dayNames[i] + '</div>' +
+          '<div class="day-val"   style="color:' + col + '">' + v + '</div>';
+        row.appendChild(dot);
+      });
+    }
+
+    function changeCount(delta) {
+      const newVal = count + delta;
+      if (newVal < 0) return;
+      count = newVal;
+
+      if (delta > 0) {
+        const now = new Date();
+        const hh = String(now.getHours()).padStart(2, '0');
+        const mm = String(now.getMinutes()).padStart(2, '0');
+        const timeStr = hh + ':' + mm;
+        const dateStr = now.toLocaleDateString('zh-TW');
+
+        logs.push({ time: timeStr, total: count });
+        renderLog();
+
+        const payload = {
+          name:   userName,
+          userId: userId,
+          date:   dateStr,
+          time:   timeStr,
+          count:  1,
+          total:  count
+        };
+
+        fetch(GAS_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain" },
+          body: JSON.stringify(payload)
+        })
+        .then(() => showToast("✅ 已記錄到 Sheets！"))
+        .catch(() => showToast("❌ 寫入失敗，請檢查網址"));
+      }
+
+      updateUI();
+    }
+
+    function showToast(msg) {
+      let toast = document.getElementById('toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'toast';
+        toast.style.cssText = `
+          position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+          background: #1f2937; color: #fff; font-size: 13px; font-weight: 700;
+          padding: 10px 22px; border-radius: 30px; z-index: 9999;
+          font-family: 'Nunito', sans-serif; transition: opacity 0.3s;
+        `;
+        document.body.appendChild(toast);
+      }
+      toast.textContent = msg;
+      toast.style.opacity = '1';
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 2500);
+    }
+
+    function renderLog() {
+      const list = document.getElementById('logList');
+      if (logs.length === 0) {
+        list.innerHTML = '<div style="font-size:13px;color:var(--text-muted);text-align:center;padding:10px 0;">尚無紀錄，按 ＋ 開始記錄</div>';
+        return;
+      }
+      list.innerHTML = logs.slice().reverse().map(function(l, idx) {
+        const realN = logs.length - idx;
+        const m = getMood(l.total);
+        return '<div class="log-entry">' +
+          '<span>' + l.time + '　第 ' + realN + ' 根</span>' +
+          '<span class="badge" style="background:' + m.bg + ';color:' + m.color + ';">累計 ' + l.total + ' 根</span>' +
+          '</div>';
+      }).join('');
+    }
+
+    function resetToday() {
+      if (!confirm('確定要重置今日紀錄嗎？')) return;
+      count = 0;
+      logs.length = 0;
+      renderLog();
+      updateUI();
+    }
+
+    const opts = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+    document.getElementById('dateBadge').textContent = today.toLocaleDateString('zh-TW', opts);
+
+    renderStreak();
+    updateUI();
+  </script>
+</body>
+</html>

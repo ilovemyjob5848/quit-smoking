@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>戒菸排行榜</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --card-bg: #ffffff;
+      --card-border: rgba(0,0,0,0.08);
+      --body-bg: #fffbeb;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --text-muted: #9ca3af;
+      --amber: #d97706;
+      --amber-light: #fef9c3;
+      --amber-dark: #92400e;
+      --green: #059669;
+      --green-light: #d1fae5;
+      --green-dark: #065f46;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --card-bg: #1c1a10;
+        --card-border: rgba(255,255,255,0.08);
+        --body-bg: #111009;
+        --text-primary: #f3f4f6;
+        --text-secondary: #9ca3af;
+        --text-muted: #6b7280;
+      }
+    }
+    body { font-family: 'Nunito', sans-serif; background: var(--body-bg); min-height: 100vh; padding: 1.5rem 1rem 4rem; }
+    .app { max-width: 480px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 1.5rem; }
+    .header h1 { font-size: 24px; font-weight: 900; color: var(--text-primary); }
+    .header p { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 2px 12px rgba(217,119,6,0.08); }
+    .section-title { font-size: 13px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.9rem; }
+
+    /* Tab */
+    .tab-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+    .tab-btn { flex: 1; padding: 9px 6px; border-radius: 12px; border: 1px solid var(--card-border); font-size: 12px; font-weight: 800; cursor: pointer; transition: all .2s; background: var(--card-bg); color: var(--text-secondary); font-family: 'Nunito', sans-serif; text-align: center; }
+    .tab-btn.active { background: var(--amber-light); border-color: var(--amber); color: var(--amber-dark); }
+
+    /* Podium */
+    .podium { display: flex; align-items: flex-end; justify-content: center; gap: 10px; margin-bottom: 1.25rem; height: 130px; }
+    .pod { display: flex; flex-direction: column; align-items: center; }
+    .pod-bar { border-radius: 10px 10px 0 0; width: 88px; display: flex; flex-direction: column; align-items: center; padding-top: 10px; gap: 3px; }
+    .pod-avatar { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; border: 2px solid rgba(255,255,255,0.5); }
+    .pod-val { font-size: 11px; font-weight: 800; }
+    .pod-name { font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-top: 4px; max-width: 88px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pod-medal { font-size: 18px; margin-top: 2px; }
+
+    /* List */
+    .rank-list { display: flex; flex-direction: column; gap: 8px; }
+    .rank-row { display: flex; align-items: center; gap: 10px; background: var(--body-bg); border-radius: 14px; padding: 10px 12px; border: 1.5px solid transparent; transition: border .2s; }
+    .rank-row.is-me { border-color: var(--amber); background: var(--amber-light); }
+    .rank-num { font-size: 14px; font-weight: 800; color: var(--text-muted); min-width: 24px; text-align: center; }
+    .rank-avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 800; flex-shrink: 0; }
+    .rank-info { flex: 1; min-width: 0; }
+    .rank-name { font-size: 14px; font-weight: 800; color: var(--text-primary); display: flex; align-items: center; gap: 5px; }
+    .rank-sub { font-size: 11px; color: var(--text-secondary); margin-top: 2px; }
+    .rank-val { font-size: 13px; font-weight: 800; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
+    .me-tag { font-size: 10px; font-weight: 800; background: var(--amber); color: #fff; padding: 1px 6px; border-radius: 10px; }
+
+    /* Nickname input */
+    .nickname-wrap { display: flex; gap: 8px; margin-bottom: 1rem; }
+    .nickname-input { flex: 1; border: 1.5px solid var(--card-border); border-radius: 12px; padding: 9px 14px; font-size: 14px; font-family: 'Nunito', sans-serif; font-weight: 700; color: var(--text-primary); background: var(--card-bg); outline: none; transition: border-color .2s; }
+    .nickname-input:focus { border-color: var(--amber); }
+    .btn-save { padding: 9px 16px; border-radius: 12px; border: none; background: var(--amber); color: #fff; font-size: 13px; font-weight: 800; font-family: 'Nunito', sans-serif; cursor: pointer; white-space: nowrap; }
+
+    /* Loading / empty */
+    .loading-msg { text-align: center; padding: 2rem 0; color: var(--text-muted); font-size: 14px; }
+    .update-time { font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 8px; }
+
+    /* Refresh btn */
+    .btn-refresh { width: 100%; padding: 11px; border-radius: 14px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-secondary); font-size: 14px; font-weight: 800; font-family: 'Nunito', sans-serif; cursor: pointer; transition: border-color .2s, color .2s; }
+    .btn-refresh:hover { border-color: var(--amber); color: var(--amber); }
+
+    /* Stats row */
+    .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1rem; }
+    .stat-card { background: var(--body-bg); border-radius: 12px; padding: 10px; text-align: center; }
+    .stat-num { font-size: 22px; font-weight: 900; color: var(--text-primary); }
+    .stat-label { font-size: 11px; color: var(--text-secondary); font-weight: 700; margin-top: 2px; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div style="font-size:36px;margin-bottom:6px;">🏆</div>
+    <h1>戒菸排行榜</h1>
+    <p>互相激勵，一起戒菸成功！</p>
+  </div>
+
+  <!-- 暱稱設定 -->
+  <div class="card">
+    <div class="section-title">👤 你的暱稱</div>
+    <div class="nickname-wrap">
+      <input class="nickname-input" id="nicknameInput" type="text" placeholder="輸入暱稱來標示你的排名" maxlength="10" />
+      <button class="btn-save" onclick="saveNickname()">儲存</button>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);">暱稱需與戒菸追蹤器填寫的相同，才能正確標示「你」的位置</div>
+  </div>
+
+  <!-- 整體統計 -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num" id="statTotal">—</div>
+      <div class="stat-label">參與人數</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statAvgDays">—</div>
+      <div class="stat-label">平均戒菸天</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="statTotalReduced">—</div>
+      <div class="stat-label">總減少根數</div>
+    </div>
+  </div>
+
+  <!-- Tab 切換 -->
+  <div class="tab-row">
+    <button class="tab-btn active" id="tab0" onclick="switchTab(0)">📅 戒菸天數</button>
+    <button class="tab-btn"        id="tab1" onclick="switchTab(1)">🚬 減少根數</button>
+    <button class="tab-btn"        id="tab2" onclick="switchTab(2)">🔥 連續打卡</button>
+  </div>
+
+  <!-- 排行榜主體 -->
+  <div class="card">
+    <div id="podiumArea"></div>
+    <div class="rank-list" id="rankList">
+      <div class="loading-msg">⏳ 載入中...</div>
+    </div>
+    <div class="update-time" id="updateTime"></div>
+  </div>
+
+  <button class="btn-refresh" onclick="loadData()">🔄 重新整理排行榜</button>
+
+</div>
+
+<script>
+  // ✅ 貼上你的 GAS Web App 網址
+  const GAS_URL = 'https://script.google.com/macros/library/d/1dEJkujujBZv7xI3Nz4iGg0so0AaKAKTAY9M-8ZcNmV20b-MrYLAXuymp/4';
+
+  const tabKeys = ['quitDays', 'totalReduced', 'streak'];
+  const tabUnits = ['天', '根', '天'];
+  const tabLabels = ['戒菸天數', '減少根數', '連續打卡'];
+  const tabIcons = ['📅','🚬','🔥'];
+
+  const avatarColors = [
+    { bg:'#FAC775', text:'#633806' },
+    { bg:'#9FE1CB', text:'#085041' },
+    { bg:'#B5D4F4', text:'#0C447C' },
+    { bg:'#F4C0D1', text:'#72243E' },
+    { bg:'#C0DD97', text:'#27500A' },
+    { bg:'#F5C4B3', text:'#712B13' },
+    { bg:'#CECBF6', text:'#3C3489' },
+    { bg:'#FAC775', text:'#633806' },
+  ];
+
+  let allData = [];
+  let curTab = 0;
+  let myNickname = localStorage.getItem('leaderboardNickname') || '';
+
+  // 初始化
+  document.getElementById('nicknameInput').value = myNickname;
+  loadData();
+
+  function saveNickname() {
+    const val = document.getElementById('nicknameInput').value.trim();
+    if (!val) { alert('請輸入暱稱！'); return; }
+    myNickname = val;
+    localStorage.setItem('leaderboardNickname', val);
+    render();
+    alert('✅ 暱稱已儲存：' + val);
+  }
+
+  function loadData() {
+    document.getElementById('rankList').innerHTML = '<div class="loading-msg">⏳ 載入中...</div>';
+    document.getElementById('podiumArea').innerHTML = '';
+
+    if (!GAS_URL || GAS_URL === '請填入你的GAS網址') {
+      useDemoData();
+      return;
+    }
+
+    fetch(GAS_URL)
+      .then(r => r.json())
+      .then(res => {
+        if (res.status === 'ok') {
+          allData = res.data;
+          updateStats();
+          render();
+          const now = new Date().toLocaleTimeString('zh-TW');
+          document.getElementById('updateTime').textContent = '最後更新：' + now;
+        } else {
+          useDemoData();
+        }
+      })
+      .catch(() => useDemoData());
+  }
+
+  function useDemoData() {
+    allData = [
+      { nickname:'小明', quitDays:58, totalReduced:420, streak:58 },
+      { nickname:'阿志', quitDays:42, totalReduced:308, streak:14 },
+      { nickname:'小華', quitDays:31, totalReduced:227, streak:31 },
+      { nickname:'阿美', quitDays:18, totalReduced:132, streak:10 },
+      { nickname:'大偉', quitDays:12, totalReduced:88,  streak:7  },
+      { nickname:'小芳', quitDays:7,  totalReduced:51,  streak:5  },
+    ];
+    updateStats();
+    render();
+    document.getElementById('updateTime').textContent = '（示範資料）填入 GAS 網址後即顯示真實資料';
+  }
+
+  function updateStats() {
+    document.getElementById('statTotal').textContent = allData.length;
+    const avgDays = allData.length > 0 ? Math.round(allData.reduce((s,d) => s + d.quitDays, 0) / allData.length) : 0;
+    document.getElementById('statAvgDays').textContent = avgDays;
+    const totalR = allData.reduce((s,d) => s + d.totalReduced, 0);
+    document.getElementById('statTotalReduced').textContent = totalR >= 1000 ? (totalR/1000).toFixed(1)+'k' : totalR;
+  }
+
+  function switchTab(n) {
+    curTab = n;
+    document.querySelectorAll('.tab-btn').forEach((t,i) => t.classList.toggle('active', i === n));
+    render();
+  }
+
+  function render() {
+    const key = tabKeys[curTab];
+    const unit = tabUnits[curTab];
+    const sorted = [...allData].sort((a,b) => b[key] - a[key]);
+
+    // Podium (top 3)
+    renderPodium(sorted.slice(0,3), key, unit);
+
+    // List (rank 4+, plus my rank if top 3)
+    const rest = sorted.slice(3);
+    const myIdx = sorted.findIndex(d => d.nickname === myNickname);
+
+    let html = '';
+    rest.forEach((d, i) => {
+      const rank = i + 4;
+      const isMe = d.nickname === myNickname;
+      const col = avatarColors[(rank - 1) % avatarColors.length];
+      html += `
+        <div class="rank-row${isMe ? ' is-me' : ''}">
+          <div class="rank-num">${rank}</div>
+          <div class="rank-avatar" style="background:${col.bg};color:${col.text}">${d.nickname[0]}</div>
+          <div class="rank-info">
+            <div class="rank-name">
+              ${d.nickname}
+              ${isMe ? '<span class="me-tag">你</span>' : ''}
+            </div>
+            <div class="rank-sub">${tabLabels[curTab]}</div>
+          </div>
+          <div class="rank-val" style="background:${col.bg};color:${col.text}">${d[key]} ${unit}</div>
+        </div>`;
+    });
+
+    // 如果「我」在前3名，在列表頂部補充提示
+    if (myIdx >= 0 && myIdx < 3 && myNickname) {
+      html = `<div style="font-size:12px;color:var(--amber);font-weight:800;text-align:center;padding:8px 0;">🥇 你在前三名！看上方頒獎台</div>` + html;
+    }
+
+    if (!html) html = '<div class="loading-msg" style="padding:1rem 0;">目前只有前三名</div>';
+    document.getElementById('rankList').innerHTML = html;
+  }
+
+  function renderPodium(top, key, unit) {
+    if (top.length === 0) {
+      document.getElementById('podiumArea').innerHTML = '';
+      return;
+    }
+
+    const medals = ['🥇','🥈','🥉'];
+    const heights = [105, 80, 60];
+    const barColors = [
+      { bg:'#FAC775', text:'#633806', avatarBg:'#854F0B', avatarText:'#FAC775' },
+      { bg:'#C0DD97', text:'#27500A', avatarBg:'#3B6D11', avatarText:'#C0DD97' },
+      { bg:'#9FE1CB', text:'#085041', avatarBg:'#0F6E56', avatarText:'#9FE1CB' },
+    ];
+
+    // 順序：2nd, 1st, 3rd
+    const order = top.length >= 3 ? [1,0,2] : top.length === 2 ? [1,0] : [0];
+
+    let html = '<div style="display:flex;align-items:flex-end;justify-content:center;gap:10px;margin-bottom:1.25rem;height:140px;">';
+    order.forEach(i => {
+      if (!top[i]) return;
+      const d = top[i];
+      const c = barColors[i];
+      const h = heights[i];
+      const isMe = d.nickname === myNickname;
+      html += `
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div style="border-radius:10px 10px 0 0;width:88px;height:${h}px;background:${c.bg};display:flex;flex-direction:column;align-items:center;padding-top:10px;gap:3px;${isMe?'outline:2px solid var(--amber);':''}">
+            <div style="width:38px;height:38px;border-radius:50%;background:${c.avatarBg};color:${c.avatarText};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;border:2px solid rgba(255,255,255,.5);">${d.nickname[0]}</div>
+            <div style="font-size:11px;font-weight:800;color:${c.text};">${d[key]}${unit}</div>
+          </div>
+          <div style="font-size:12px;font-weight:700;color:var(--text-secondary);margin-top:4px;max-width:88px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${d.nickname}${isMe?' 👈':''}</div>
+          <div style="font-size:18px;margin-top:2px;">${medals[i]}</div>
+        </div>`;
+    });
+    html += '</div>';
+    document.getElementById('podiumArea').innerHTML = html;
+  }
+</script>
+</body>
+</html>

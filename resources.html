@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>戒菸資源中心</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --card-bg: #ffffff;
+      --card-border: rgba(0,0,0,0.08);
+      --body-bg: #f0fdf4;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --text-muted: #9ca3af;
+      --green: #059669;
+      --green-light: #d1fae5;
+      --green-dark: #065f46;
+      --teal: #0d9488;
+      --teal-light: #ccfbf1;
+      --blue: #2563eb;
+      --blue-light: #dbeafe;
+      --blue-dark: #1e3a8a;
+      --amber: #d97706;
+      --amber-light: #fef9c3;
+      --amber-dark: #92400e;
+      --pink: #db2777;
+      --pink-light: #fce7f3;
+      --pink-dark: #9d174d;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --card-bg: #1a2e25;
+        --card-border: rgba(255,255,255,0.08);
+        --body-bg: #0d1f18;
+        --text-primary: #f3f4f6;
+        --text-secondary: #9ca3af;
+        --text-muted: #6b7280;
+      }
+    }
+    body { font-family: 'Nunito', sans-serif; background: var(--body-bg); min-height: 100vh; padding: 1.5rem 1rem 4rem; }
+    .app { max-width: 480px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 1.5rem; }
+    .header h1 { font-size: 24px; font-weight: 900; color: var(--text-primary); }
+    .header p { font-size: 13px; color: var(--text-secondary); margin-top: 4px; line-height: 1.6; }
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 1.25rem; margin-bottom: 1rem; box-shadow: 0 2px 12px rgba(5,150,105,0.08); }
+    .section-title { font-size: 13px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.9rem; }
+
+    /* Tab */
+    .tab-row { display: flex; gap: 6px; margin-bottom: 1rem; overflow-x: auto; padding-bottom: 2px; }
+    .tab-row::-webkit-scrollbar { display: none; }
+    .tab-btn { flex-shrink: 0; padding: 8px 14px; border-radius: 20px; border: 1px solid var(--card-border); font-size: 13px; font-weight: 800; cursor: pointer; transition: all .2s; background: var(--card-bg); color: var(--text-secondary); font-family: 'Nunito', sans-serif; white-space: nowrap; }
+    .tab-btn.active { background: var(--green-light); border-color: var(--green); color: var(--green-dark); }
+
+    /* Hotline card */
+    .hotline-card { border-radius: 16px; padding: 1rem; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; text-decoration: none; transition: transform .15s; border: 1.5px solid transparent; }
+    .hotline-card:hover { transform: scale(1.01); }
+    .hotline-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .hotline-info { flex: 1; min-width: 0; }
+    .hotline-name { font-size: 14px; font-weight: 800; color: var(--text-primary); }
+    .hotline-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; line-height: 1.5; }
+    .hotline-action { font-size: 12px; font-weight: 800; padding: 5px 12px; border-radius: 20px; white-space: nowrap; flex-shrink: 0; }
+
+    /* Policy card */
+    .policy-item { border-radius: 14px; padding: 1rem; margin-bottom: 10px; }
+    .policy-top { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 6px; }
+    .policy-emoji { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+    .policy-title { font-size: 14px; font-weight: 800; color: var(--text-primary); }
+    .policy-content { font-size: 13px; color: var(--text-secondary); line-height: 1.7; }
+    .policy-tag { display: inline-block; font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 10px; margin-top: 6px; }
+
+    /* Story card */
+    .story-card { border-radius: 16px; padding: 1rem; margin-bottom: 10px; }
+    .story-header { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .story-avatar { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; flex-shrink: 0; }
+    .story-meta { flex: 1; }
+    .story-name { font-size: 14px; font-weight: 800; color: var(--text-primary); }
+    .story-days { font-size: 12px; font-weight: 700; margin-top: 2px; }
+    .story-quote { font-size: 13px; line-height: 1.7; color: var(--text-secondary); font-style: italic; }
+    .story-quote::before { content: '「'; font-size: 16px; font-style: normal; }
+    .story-quote::after  { content: '」'; font-size: 16px; font-style: normal; }
+    .story-result { font-size: 12px; font-weight: 800; margin-top: 8px; padding: 5px 10px; border-radius: 10px; display: inline-block; }
+
+    /* Accordion */
+    .accordion { border-radius: 14px; margin-bottom: 8px; overflow: hidden; border: 1px solid var(--card-border); }
+    .acc-header { padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: var(--body-bg); }
+    .acc-title { font-size: 13px; font-weight: 800; color: var(--text-primary); }
+    .acc-arrow { font-size: 12px; color: var(--text-muted); transition: transform .2s; }
+    .acc-arrow.open { transform: rotate(180deg); }
+    .acc-body { display: none; padding: 0 14px 12px; font-size: 13px; color: var(--text-secondary); line-height: 1.7; background: var(--body-bg); }
+    .acc-body.open { display: block; }
+
+    /* Important badge */
+    .badge-free { background: var(--green-light); color: var(--green-dark); }
+    .badge-law  { background: var(--blue-light);  color: var(--blue-dark); }
+    .badge-story{ background: var(--amber-light); color: var(--amber-dark); }
+
+    /* Update notice */
+    .update-note { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 8px; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div style="font-size:36px;margin-bottom:6px;">🏛️</div>
+    <h1>戒菸資源中心</h1>
+    <p>台灣政府提供免費戒菸服務<br>讓你不孤單，一起戒菸成功！</p>
+  </div>
+
+  <!-- Tab -->
+  <div class="tab-row">
+    <button class="tab-btn active" id="tab0" onclick="switchTab(0)">📞 免費管道</button>
+    <button class="tab-btn"        id="tab1" onclick="switchTab(1)">📋 戒菸政策</button>
+    <button class="tab-btn"        id="tab2" onclick="switchTab(2)">💬 成功故事</button>
+    <button class="tab-btn"        id="tab3" onclick="switchTab(3)">❓ 常見問題</button>
+  </div>
+
+  <!-- Section 0: 免費管道 -->
+  <div id="sec0">
+    <div class="card">
+      <div class="section-title">📞 立即撥打 / 聯絡</div>
+
+      <a class="hotline-card" href="tel:0800636363" style="background:#d1fae5;border-color:#059669;">
+        <div class="hotline-icon" style="background:#059669;">📞</div>
+        <div class="hotline-info">
+          <div class="hotline-name">免費戒菸專線</div>
+          <div class="hotline-desc">0800-636363｜週一至週六 09:00–21:00<br>專業人員一對一諮詢，完全免費</div>
+        </div>
+        <div class="hotline-action" style="background:#059669;color:#fff;">撥打</div>
+      </a>
+
+      <a class="hotline-card" href="https://lin.ee/6Y5sagq" target="_blank" style="background:#dcfce7;border-color:#16a34a;">
+        <div class="hotline-icon" style="background:#16a34a;">💬</div>
+        <div class="hotline-info">
+          <div class="hotline-name">戒菸專線 LINE 諮詢</div>
+          <div class="hotline-desc">LINE ID：@tsh0800636363<br>用 LINE 也可以諮詢，方便又私密</div>
+        </div>
+        <div class="hotline-action" style="background:#16a34a;color:#fff;">加入</div>
+      </a>
+
+      <a class="hotline-card" href="https://ttc.hpa.gov.tw/" target="_blank" style="background:#dbeafe;border-color:#2563eb;">
+        <div class="hotline-icon" style="background:#2563eb;">🏥</div>
+        <div class="hotline-info">
+          <div class="hotline-name">找附近戒菸門診</div>
+          <div class="hotline-desc">全台醫院、診所、社區藥局均可<br>提供免費戒菸治療服務</div>
+        </div>
+        <div class="hotline-action" style="background:#2563eb;color:#fff;">查詢</div>
+      </a>
+
+      <a class="hotline-card" href="https://www.hpa.gov.tw/Pages/List.aspx?nodeid=1487" target="_blank" style="background:#fce7f3;border-color:#db2777;">
+        <div class="hotline-icon" style="background:#db2777;">🌐</div>
+        <div class="hotline-info">
+          <div class="hotline-name">國民健康署官方網站</div>
+          <div class="hotline-desc">戒菸衛教手冊、影片教學<br>完整戒菸資源一次查詢</div>
+        </div>
+        <div class="hotline-action" style="background:#db2777;color:#fff;">前往</div>
+      </a>
+
+      <a class="hotline-card" href="https://www.instagram.com/tsh0800636363/" target="_blank" style="background:#fef9c3;border-color:#d97706;">
+        <div class="hotline-icon" style="background:#d97706;">📸</div>
+        <div class="hotline-info">
+          <div class="hotline-name">戒菸專線 Instagram</div>
+          <div class="hotline-desc">追蹤最新戒菸資訊、故事分享<br>及衛教短片</div>
+        </div>
+        <div class="hotline-action" style="background:#d97706;color:#fff;">追蹤</div>
+      </a>
+    </div>
+    <div class="update-note">以上資訊來源：衛生福利部國民健康署（2026年更新）</div>
+  </div>
+
+  <!-- Section 1: 戒菸政策 -->
+  <div id="sec1" style="display:none;">
+    <div class="card">
+      <div class="section-title">💰 免費補助方案</div>
+
+      <div class="policy-item" style="background:#d1fae5;">
+        <div class="policy-top">
+          <div class="policy-emoji">💊</div>
+          <div>
+            <div class="policy-title">戒菸藥物補助（免費）</div>
+          </div>
+        </div>
+        <div class="policy-content">
+          自 2022 年 5 月 15 日起，接受戒菸輔助用藥服務<strong>完全不收部分負擔費用</strong>。每人每年補助 2 個療程，每療程最多補助 8 週藥品，須於同一醫事機構 90 天內完成。
+        </div>
+        <span class="policy-tag badge-free">✅ 完全免費</span>
+      </div>
+
+      <div class="policy-item" style="background:#dbeafe;">
+        <div class="policy-top">
+          <div class="policy-emoji">👨‍⚕️</div>
+          <div>
+            <div class="policy-title">二代戒菸服務</div>
+          </div>
+        </div>
+        <div class="policy-content">
+          全台醫院門診、住院、急診及社區藥局皆可提供戒菸服務。費用由菸品健康福利捐支應，不排擠健保資源。完成療程後 3 個月及 6 個月有專人追蹤輔導。
+        </div>
+        <span class="policy-tag badge-free">✅ 菸捐支付</span>
+      </div>
+
+      <div class="policy-item" style="background:#fef9c3;">
+        <div class="policy-top">
+          <div class="policy-emoji">🎓</div>
+          <div>
+            <div class="policy-title">戒菸衛教服務</div>
+          </div>
+        </div>
+        <div class="policy-content">
+          不適合用藥者（孕婦、18 歲以下青少年）也可接受衛教諮詢，由衛教師提供專業支持與關懷，只要有戒菸意願皆可申請。
+        </div>
+        <span class="policy-tag badge-free">✅ 全民適用</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">⚖️ 菸害防制法重點</div>
+
+      <div class="policy-item" style="background:#fce7f3;">
+        <div class="policy-top">
+          <div class="policy-emoji">🚭</div>
+          <div>
+            <div class="policy-title">禁菸場所擴大</div>
+          </div>
+        </div>
+        <div class="policy-content">
+          餐廳、辦公室、學校、醫療機構、大眾運輸等公共場所全面禁菸。違規吸菸可處 2,000 至 10,000 元罰鍰。
+        </div>
+        <span class="policy-tag badge-law">📋 法規</span>
+      </div>
+
+      <div class="policy-item" style="background:#ede9fe;">
+        <div class="policy-top">
+          <div class="policy-emoji">🔞</div>
+          <div>
+            <div class="policy-title">未成年禁止購菸</div>
+          </div>
+        </div>
+        <div class="policy-content">
+          禁止販售菸品給未滿 20 歲者。販賣者可處 10,000 至 50,000 元罰鍰，並吊銷執照。
+        </div>
+        <span class="policy-tag badge-law">📋 法規</span>
+      </div>
+
+      <div class="policy-item" style="background:#ccfbf1;">
+        <div class="policy-top">
+          <div class="policy-emoji">📦</div>
+          <div>
+            <div class="policy-title">電子菸管制</div>
+          </div>
+        </div>
+        <div class="policy-content">
+          加熱菸、電子煙等新型菸品依法管制，不得任意販售、廣告或促銷，違者最高可處 1,000,000 元罰鍰。
+        </div>
+        <span class="policy-tag badge-law">📋 法規</span>
+      </div>
+    </div>
+    <div class="update-note">以上資訊來源：衛生福利部（2026年更新）</div>
+  </div>
+
+  <!-- Section 2: 成功故事 -->
+  <div id="sec2" style="display:none;">
+    <div class="card">
+      <div class="section-title">💬 真實戒菸故事</div>
+
+      <div class="story-card" style="background:#d1fae5;">
+        <div class="story-header">
+          <div class="story-avatar" style="background:#059669;color:#fff;">志</div>
+          <div class="story-meta">
+            <div class="story-name">阿志，45 歲，廣告業</div>
+            <div class="story-days" style="color:#059669;">戒菸成功 ✅ 長達 20 年菸癮</div>
+          </div>
+        </div>
+        <div class="story-quote" style="color:#065f46;">
+          在太太與女兒的勸導下，撥打了 0800-636363 戒菸專線，配合醫師開立的戒菸藥物，克服了生理戒斷症狀。現在嚴重的咳嗽和過敏都好多了，跑步再也不喘了。
+        </div>
+        <div class="story-result" style="background:#059669;color:#fff;">💰 每年省下約 NT$73,000</div>
+      </div>
+
+      <div class="story-card" style="background:#dbeafe;">
+        <div class="story-header">
+          <div class="story-avatar" style="background:#2563eb;color:#fff;">美</div>
+          <div class="story-meta">
+            <div class="story-name">小美，38 歲，護理師</div>
+            <div class="story-days" style="color:#2563eb;">戒菸滿 1 年 🎉</div>
+          </div>
+        </div>
+        <div class="story-quote" style="color:#1e3a8a;">
+          懷孕後更有動力戒菸，透過醫院的戒菸衛教師輔導，不用藥也能成功。最難的是飯後那根，後來改成飯後立刻刷牙，這個方法真的有用！
+        </div>
+        <div class="story-result" style="background:#2563eb;color:#fff;">🫁 肺功能恢復 85%</div>
+      </div>
+
+      <div class="story-card" style="background:#fef9c3;">
+        <div class="story-header">
+          <div class="story-avatar" style="background:#d97706;color:#fff;">明</div>
+          <div class="story-meta">
+            <div class="story-name">老明，58 歲，工廠員工</div>
+            <div class="story-days" style="color:#d97706;">第三次嘗試終於成功 💪</div>
+          </div>
+        </div>
+        <div class="story-quote" style="color:#92400e;">
+          前兩次戒菸失敗讓我很沮喪，第三次透過社區藥局的藥師輔導，搭配貼片使用，這次撐過了最難熬的前兩週。告訴自己失敗不代表結束，重新開始就好。
+        </div>
+        <div class="story-result" style="background:#d97706;color:#fff;">😄 血壓從 160 降到 125</div>
+      </div>
+
+      <div class="story-card" style="background:#fce7f3;">
+        <div class="story-header">
+          <div class="story-avatar" style="background:#db2777;color:#fff;">華</div>
+          <div class="story-meta">
+            <div class="story-name">小華，29 歲，上班族</div>
+            <div class="story-days" style="color:#db2777;">戒菸 6 個月 🌱</div>
+          </div>
+        </div>
+        <div class="story-quote" style="color:#9d174d;">
+          用 LINE 加了戒菸專線，用文字諮詢比較不害羞。輔導員給了我個人化的戒菸計畫，每週固定回報進度，有人陪著走真的差很多。
+        </div>
+        <div class="story-result" style="background:#db2777;color:#fff;">🌸 皮膚變好、口臭消失</div>
+      </div>
+    </div>
+
+    <div class="card" style="text-align:center;padding:1.5rem;">
+      <div style="font-size:32px;margin-bottom:8px;">🧚</div>
+      <div style="font-size:15px;font-weight:800;color:var(--text-primary);margin-bottom:6px;">你也可以成為下一個故事！</div>
+      <div style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">戒菸成功率搭配專業輔導可提升至近 40%</div>
+      <a href="tel:0800636363" style="display:inline-block;background:#059669;color:#fff;font-size:14px;font-weight:800;padding:10px 24px;border-radius:20px;text-decoration:none;font-family:'Nunito',sans-serif;">📞 立即撥打 0800-636363</a>
+    </div>
+  </div>
+
+  <!-- Section 3: 常見問題 -->
+  <div id="sec3" style="display:none;">
+    <div class="card">
+      <div class="section-title">❓ 常見問題</div>
+
+      <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">
+          <div class="acc-title">戒菸門診完全免費嗎？</div>
+          <div class="acc-arrow">▼</div>
+        </div>
+        <div class="acc-body">
+          是的！自 2022 年 5 月 15 日起，不論任何對象，接受戒菸輔助用藥服務皆免收藥品部分負擔費用。掛號費依各醫療院所規定，但藥物費用完全免費。
+        </div>
+      </div>
+
+      <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">
+          <div class="acc-title">每年可以看幾次戒菸門診？</div>
+          <div class="acc-arrow">▼</div>
+        </div>
+        <div class="acc-body">
+          每人每年分別補助 2 個戒菸治療及衛教療程，每療程最多 8 週藥品。須於同一醫事機構在 90 天內完成一個療程。
+        </div>
+      </div>
+
+      <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">
+          <div class="acc-title">我以前戒過菸失敗，還能再申請嗎？</div>
+          <div class="acc-arrow">▼</div>
+        </div>
+        <div class="acc-body">
+          可以！過去戒菸失敗不影響資格，每年都可以重新申請 2 個療程。研究顯示多數人需要多次嘗試才能成功，失敗是過程的一部分，不要灰心！
+        </div>
+      </div>
+
+      <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">
+          <div class="acc-title">孕婦或青少年可以使用戒菸服務嗎？</div>
+          <div class="acc-arrow">▼</div>
+        </div>
+        <div class="acc-body">
+          可以！不適合用藥的孕婦及 18 歲以下青少年，可接受戒菸衛教服務，由專業衛教師提供諮詢與支持，只要有戒菸意願皆可申請。
+        </div>
+      </div>
+
+      <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">
+          <div class="acc-title">戒菸藥物有什麼副作用？</div>
+          <div class="acc-arrow">▼</div>
+        </div>
+        <div class="acc-body">
+          常見副作用包括噁心、睡眠困擾、口乾等，通常在適應後會緩解。所有藥物均通過衛福部食藥署許可，請在醫師或藥師指導下使用，若有不適請立即回診。
+        </div>
+      </div>
+
+      <div class="accordion">
+        <div class="acc-header" onclick="toggleAcc(this)">
+          <div class="acc-title">戒菸後多久身體會恢復？</div>
+          <div class="acc-arrow">▼</div>
+        </div>
+        <div class="acc-body">
+          戒菸 20 分鐘後血壓心跳開始恢復正常；48 小時後嗅覺味覺改善；2 週後肺功能開始提升；1 年後心臟病風險降低一半；10 年後肺癌風險降至接近非吸菸者。
+        </div>
+      </div>
+
+    </div>
+    <div class="update-note">資料來源：衛生福利部國民健康署（2026年）</div>
+  </div>
+
+</div>
+
+<script>
+  function switchTab(n) {
+    [0,1,2,3].forEach(i => {
+      document.getElementById('tab' + i).classList.toggle('active', i === n);
+      document.getElementById('sec' + i).style.display = i === n ? 'block' : 'none';
+    });
+  }
+
+  function toggleAcc(header) {
+    const body = header.nextElementSibling;
+    const arrow = header.querySelector('.acc-arrow');
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    arrow.classList.toggle('open', !isOpen);
+  }
+</script>
+</body>
+</html>

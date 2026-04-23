@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>菸癮急救包</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --card-bg: #ffffff;
+      --card-border: rgba(0,0,0,0.08);
+      --body-bg: #fff7ed;
+      --text-primary: #1f2937;
+      --text-secondary: #6b7280;
+      --text-muted: #9ca3af;
+      --orange: #ea580c;
+      --orange-light: #ffedd5;
+      --orange-dark: #7c2d12;
+      --green: #059669;
+      --green-light: #d1fae5;
+      --green-dark: #065f46;
+      --blue: #2563eb;
+      --blue-light: #dbeafe;
+      --blue-dark: #1e3a8a;
+      --pink: #db2777;
+      --pink-light: #fce7f3;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --card-bg: #1c1a14;
+        --card-border: rgba(255,255,255,0.08);
+        --body-bg: #111008;
+        --text-primary: #f3f4f6;
+        --text-secondary: #9ca3af;
+        --text-muted: #6b7280;
+      }
+    }
+    body { font-family: 'Nunito', sans-serif; background: var(--body-bg); min-height: 100vh; padding: 1.5rem 1rem 4rem; }
+    .app { max-width: 480px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 1.5rem; }
+    .header h1 { font-size: 24px; font-weight: 900; color: var(--text-primary); }
+    .header p { font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+    .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 20px; padding: 1.25rem; margin-bottom: 1rem; }
+    .section-title { font-size: 13px; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.9rem; }
+
+    /* Step indicator */
+    .steps { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 1.25rem; }
+    .step-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--card-border); transition: all .3s; }
+    .step-dot.active { background: var(--orange); width: 24px; border-radius: 5px; }
+    .step-dot.done { background: var(--green); }
+
+    /* Situation buttons */
+    .sit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .sit-btn { padding: 14px 10px; border-radius: 16px; border: 1.5px solid var(--card-border); background: var(--body-bg); cursor: pointer; transition: all .2s; font-family: 'Nunito', sans-serif; text-align: center; }
+    .sit-btn:hover { border-color: var(--orange); }
+    .sit-btn.selected { border-color: var(--orange); background: var(--orange-light); }
+    .sit-emoji { font-size: 28px; display: block; margin-bottom: 5px; }
+    .sit-name { font-size: 13px; font-weight: 800; color: var(--text-primary); display: block; }
+    .sit-desc { font-size: 11px; color: var(--text-secondary); display: block; margin-top: 2px; }
+    .sit-btn.selected .sit-name { color: var(--orange-dark); }
+
+    /* Method cards */
+    .method-card { border-radius: 16px; padding: 1rem; margin-bottom: 10px; cursor: pointer; transition: transform .15s; border: 1.5px solid transparent; }
+    .method-card:hover { transform: scale(1.01); }
+    .method-card.active { border-color: var(--orange); }
+    .method-top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .method-emoji { font-size: 24px; }
+    .method-name { font-size: 15px; font-weight: 800; }
+    .method-desc { font-size: 13px; line-height: 1.6; }
+    .method-type { font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 20px; margin-left: auto; }
+
+    /* Timer */
+    .timer-wrap { text-align: center; padding: 1.5rem 0; }
+    .timer-ring { width: 160px; height: 160px; margin: 0 auto 1rem; position: relative; }
+    .timer-ring svg { transform: rotate(-90deg); }
+    .timer-ring circle { transition: stroke-dashoffset .5s linear; }
+    .timer-num { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 36px; font-weight: 900; color: var(--text-primary); font-family: 'Nunito', sans-serif; }
+    .timer-unit { font-size: 13px; font-weight: 700; color: var(--text-secondary); margin-top: -4px; display: block; }
+    .timer-msg { font-size: 14px; font-weight: 700; color: var(--text-secondary); margin-bottom: 1rem; min-height: 40px; }
+    .timer-msg span { color: var(--orange); }
+
+    /* Buttons */
+    .btn { width: 100%; padding: 13px; border-radius: 14px; border: none; font-size: 15px; font-weight: 800; font-family: 'Nunito', sans-serif; cursor: pointer; transition: transform .15s, opacity .15s; margin-top: 6px; }
+    .btn:active { transform: scale(0.97); }
+    .btn-orange { background: var(--orange); color: #fff; }
+    .btn-green  { background: var(--green);  color: #fff; }
+    .btn-gray   { background: var(--body-bg); color: var(--text-secondary); border: 1px solid var(--card-border); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    /* Success screen */
+    .success-wrap { text-align: center; padding: 2rem 0; }
+    .success-emoji { font-size: 64px; margin-bottom: 12px; }
+    .success-title { font-size: 22px; font-weight: 900; color: var(--green); margin-bottom: 6px; }
+    .success-sub { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+    .streak-badge { display: inline-block; background: var(--green-light); color: var(--green-dark); font-size: 13px; font-weight: 800; padding: 6px 16px; border-radius: 20px; margin: 12px 0; }
+
+    /* Progress bar */
+    .progress-bar { height: 6px; background: var(--card-border); border-radius: 3px; overflow: hidden; margin-bottom: 1rem; }
+    .progress-fill { height: 100%; border-radius: 3px; background: var(--orange); transition: width .5s linear; }
+
+    /* Section hide/show */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* Breathing animation */
+    @keyframes breathe {
+      0%,100% { transform: scale(1); opacity: .8; }
+      50% { transform: scale(1.15); opacity: 1; }
+    }
+    .breathe-circle { width: 80px; height: 80px; border-radius: 50%; background: var(--blue-light); margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 32px; animation: breathe 4s ease-in-out infinite; }
+    .breathe-label { font-size: 13px; color: var(--blue-dark); font-weight: 700; text-align: center; }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div style="font-size:36px;margin-bottom:6px;">🆘</div>
+    <h1>菸癮急救包</h1>
+    <p>撐過 3 分鐘，菸癮就會消退！</p>
+  </div>
+
+  <!-- Step dots -->
+  <div class="steps">
+    <div class="step-dot active" id="dot0"></div>
+    <div class="step-dot" id="dot1"></div>
+    <div class="step-dot" id="dot2"></div>
+  </div>
+
+  <!-- Section 0: 狀況選擇 -->
+  <div class="section active" id="sec0">
+    <div class="card">
+      <div class="section-title">😰 你現在的狀況是？</div>
+      <div class="sit-grid">
+        <div class="sit-btn" onclick="selectSit(this,'stress')">
+          <span class="sit-emoji">😤</span>
+          <span class="sit-name">壓力很大</span>
+          <span class="sit-desc">工作煩、心情差</span>
+        </div>
+        <div class="sit-btn" onclick="selectSit(this,'bored')">
+          <span class="sit-emoji">😑</span>
+          <span class="sit-name">無聊發呆</span>
+          <span class="sit-desc">不知道做什麼</span>
+        </div>
+        <div class="sit-btn" onclick="selectSit(this,'social')">
+          <span class="sit-emoji">🍺</span>
+          <span class="sit-name">社交場合</span>
+          <span class="sit-desc">朋友在抽、聚會</span>
+        </div>
+        <div class="sit-btn" onclick="selectSit(this,'habit')">
+          <span class="sit-emoji">☕</span>
+          <span class="sit-name">習慣時間</span>
+          <span class="sit-desc">飯後、喝咖啡時</span>
+        </div>
+        <div class="sit-btn" onclick="selectSit(this,'anxiety')">
+          <span class="sit-emoji">😰</span>
+          <span class="sit-name">焦慮不安</span>
+          <span class="sit-desc">心跳快、手抖</span>
+        </div>
+        <div class="sit-btn" onclick="selectSit(this,'any')">
+          <span class="sit-emoji">🤷</span>
+          <span class="sit-name">說不上來</span>
+          <span class="sit-desc">就是很想抽</span>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-orange" id="btnNext0" onclick="goToMethods()" disabled>選好了，給我方法 →</button>
+  </div>
+
+  <!-- Section 1: 方法推薦 -->
+  <div class="section" id="sec1">
+    <div class="card">
+      <div class="section-title" id="methodTitle">推薦給你的方法</div>
+      <div id="methodList"></div>
+    </div>
+    <button class="btn btn-orange" id="btnStartTimer" onclick="startTimer()" disabled>開始計時，撐過 3 分鐘 💪</button>
+    <button class="btn btn-gray" style="margin-top:8px;" onclick="goBack(0)">← 重新選擇狀況</button>
+  </div>
+
+  <!-- Section 2: 計時器 -->
+  <div class="section" id="sec2">
+    <div class="card">
+      <div class="section-title" id="timerMethodName"></div>
+      <div id="breathingArea"></div>
+      <div class="timer-wrap">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:100%"></div></div>
+        <div class="timer-ring">
+          <svg width="160" height="160">
+            <circle cx="80" cy="80" r="68" fill="none" stroke="var(--card-border)" stroke-width="8"/>
+            <circle id="timerCircle" cx="80" cy="80" r="68" fill="none" stroke="var(--orange)" stroke-width="8"
+              stroke-dasharray="427" stroke-dashoffset="0" stroke-linecap="round"/>
+          </svg>
+          <div class="timer-num" id="timerNum">3:00</div>
+        </div>
+        <div class="timer-msg" id="timerMsg">準備好了就按開始 🧚</div>
+        <button class="btn btn-orange" id="btnTimerStart" onclick="runTimer()">▶ 開始計時</button>
+        <button class="btn btn-gray" id="btnTimerBack" onclick="goBack(1)" style="margin-top:8px;">← 換個方法</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 3: 成功畫面 -->
+  <div class="section" id="sec3">
+    <div class="card">
+      <div class="success-wrap">
+        <div class="success-emoji">🎉</div>
+        <div class="success-title">你撐過去了！</div>
+        <div class="streak-badge" id="successStreak">今天已撐過 1 次菸癮</div>
+        <div class="success-sub">菸癮是一陣一陣的，<br>每撐過一次都讓你更強大 💪<br>小精靈以你為傲！🧚</div>
+      </div>
+    </div>
+    <button class="btn btn-green" onclick="resetAll()">繼續守護 🌿</button>
+    <button class="btn btn-gray" style="margin-top:8px;" onclick="goBack(0)">再來一次</button>
+  </div>
+
+</div>
+
+<script>
+  const TOTAL = 180;
+  let selectedSit = null;
+  let selectedMethod = null;
+  let timerInterval = null;
+  let timeLeft = TOTAL;
+  let successCount = parseInt(localStorage.getItem('cravingWins') || '0');
+
+  const methods = {
+    stress: [
+      { emoji:'🫁', name:'4-7-8 深呼吸', desc:'吸氣4秒→憋氣7秒→吐氣8秒，重複3次。立刻降低皮質醇，消除緊張感。', type:'呼吸', color:'#dbeafe', nameColor:'#1e40af', typeColor:'#1e40af', typeBg:'#dbeafe', breathing:true },
+      { emoji:'💧', name:'喝一大杯冷水', desc:'慢慢喝完整杯冷水，感受每一口清涼。水分能緩解菸癮感並讓手有事做。', type:'快速', color:'#ccfbf1', nameColor:'#0f766e', typeColor:'#0f766e', typeBg:'#ccfbf1' },
+      { emoji:'✊', name:'握拳再放開', desc:'用力握拳10秒，再慢慢放開，重複5次。釋放身體的緊繃感，轉移注意力。', type:'身體', color:'#fce7f3', nameColor:'#9d174d', typeColor:'#9d174d', typeBg:'#fce7f3' },
+    ],
+    bored: [
+      { emoji:'🎮', name:'玩手機小遊戲', desc:'打開一個手機遊戲玩3分鐘，讓大腦有事情做。無聊是菸癮最大的觸發點！', type:'轉移', color:'#ede9fe', nameColor:'#5b21b6', typeColor:'#5b21b6', typeBg:'#ede9fe' },
+      { emoji:'🎵', name:'聽一首喜歡的歌', desc:'戴上耳機，選一首讓你開心的歌，閉眼享受3分鐘。音樂能快速改變情緒狀態。', type:'轉移', color:'#fef9c3', nameColor:'#854d0e', typeColor:'#854d0e', typeBg:'#fef9c3' },
+      { emoji:'🚶', name:'起來走動一下', desc:'站起來走到另一個地方，喝杯水再回來。改變環境就能打斷菸癮的觸發鏈。', type:'活動', color:'#d1fae5', nameColor:'#065f46', typeColor:'#065f46', typeBg:'#d1fae5' },
+    ],
+    social: [
+      { emoji:'🍬', name:'含一顆口香糖', desc:'放一顆薄荷口香糖在嘴裡，口腔有東西就不容易想抽。提前準備好放在口袋！', type:'替代', color:'#fce7f3', nameColor:'#9d174d', typeColor:'#9d174d', typeBg:'#fce7f3' },
+      { emoji:'🥤', name:'手拿飲料代替', desc:'拿一杯飲料在手上，手有東西拿就能降低想拿菸的衝動。', type:'替代', color:'#ccfbf1', nameColor:'#0f766e', typeColor:'#0f766e', typeBg:'#ccfbf1' },
+      { emoji:'📱', name:'滑手機轉移注意', desc:'告訴朋友「等一下」，拿出手機看3分鐘，菸癮浪潮就會退去。', type:'轉移', color:'#dbeafe', nameColor:'#1e40af', typeColor:'#1e40af', typeBg:'#dbeafe' },
+    ],
+    habit: [
+      { emoji:'☕', name:'改喝無糖飲料', desc:'飯後或喝咖啡時，改成喝一杯溫開水或無糖茶。重新建立新的習慣連結。', type:'替代', color:'#fef9c3', nameColor:'#854d0e', typeColor:'#854d0e', typeBg:'#fef9c3' },
+      { emoji:'🦷', name:'立刻去刷牙', desc:'飯後馬上去刷牙，乾淨的口腔感讓你不想破壞它。這是最有效的飯後菸癮剋星！', type:'替代', color:'#d1fae5', nameColor:'#065f46', typeColor:'#065f46', typeBg:'#d1fae5' },
+      { emoji:'🚶', name:'飯後散步5分鐘', desc:'吃完飯立刻起身走動，改變環境打斷「飯後一根」的習慣迴路。', type:'活動', color:'#ede9fe', nameColor:'#5b21b6', typeColor:'#5b21b6', typeBg:'#ede9fe' },
+    ],
+    anxiety: [
+      { emoji:'🫁', name:'4-7-8 深呼吸', desc:'吸氣4秒→憋氣7秒→吐氣8秒，重複3次。這是最快速降低焦慮的呼吸法。', type:'呼吸', color:'#dbeafe', nameColor:'#1e40af', typeColor:'#1e40af', typeBg:'#dbeafe', breathing:true },
+      { emoji:'🧊', name:'冷水洗手或臉', desc:'用冷水洗手30秒，低溫刺激能啟動副交感神經，快速讓心跳平穩下來。', type:'快速', color:'#ccfbf1', nameColor:'#0f766e', typeColor:'#0f766e', typeBg:'#ccfbf1' },
+      { emoji:'👁️', name:'5-4-3-2-1 接地法', desc:'說出你看到的5樣東西、4種觸感、3個聲音、2種氣味、1種味道，讓意識回到當下。', type:'冥想', color:'#fce7f3', nameColor:'#9d174d', typeColor:'#9d174d', typeBg:'#fce7f3' },
+    ],
+    any: [
+      { emoji:'💧', name:'喝一大杯水', desc:'慢慢喝完整杯水，菸癮通常3分鐘內就會退去。這是最簡單有效的方法。', type:'快速', color:'#ccfbf1', nameColor:'#0f766e', typeColor:'#0f766e', typeBg:'#ccfbf1' },
+      { emoji:'🫁', name:'深呼吸', desc:'用腹部深吸氣4秒，再慢慢吐氣6秒，重複5次。轉移大腦對菸癮的注意力。', type:'呼吸', color:'#dbeafe', nameColor:'#1e40af', typeColor:'#1e40af', typeBg:'#dbeafe', breathing:true },
+      { emoji:'🍬', name:'吃一顆糖或口香糖', desc:'讓嘴巴有事情做，薄荷口味特別有效，清涼感能降低想抽菸的慾望。', type:'替代', color:'#fce7f3', nameColor:'#9d174d', typeColor:'#9d174d', typeBg:'#fce7f3' },
+    ]
+  };
+
+  const sitTitles = {
+    stress:'😤 壓力大時推薦',
+    bored:'😑 無聊時推薦',
+    social:'🍺 社交場合推薦',
+    habit:'☕ 習慣時間推薦',
+    anxiety:'😰 焦慮時推薦',
+    any:'💪 撐過菸癮推薦'
+  };
+
+  const timerMsgs = [
+    [180,150,'深呼吸，菸癮正在高峰，再撐一下 💪'],
+    [150,90, '很好！高峰快過了，<span>快一半了</span> 🌿'],
+    [90,30,  '菸癮正在退去，<span>你快成功了</span> 🧚'],
+    [30,0,   '最後30秒！<span>你做到了！</span> 🎉'],
+  ];
+
+  function selectSit(el, sit) {
+    document.querySelectorAll('.sit-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedSit = sit;
+    document.getElementById('btnNext0').disabled = false;
+  }
+
+  function goToMethods() {
+    if (!selectedSit) return;
+    const list = methods[selectedSit];
+    document.getElementById('methodTitle').textContent = sitTitles[selectedSit];
+    const html = list.map((m, i) =>
+      `<div class="method-card" id="mc${i}" style="background:${m.color}" onclick="selectMethod(${i})">
+        <div class="method-top">
+          <span class="method-emoji">${m.emoji}</span>
+          <span class="method-name" style="color:${m.nameColor}">${m.name}</span>
+          <span class="method-type" style="background:${m.typeBg};color:${m.typeColor}">${m.type}</span>
+        </div>
+        <div class="method-desc" style="color:${m.nameColor};opacity:.8">${m.desc}</div>
+      </div>`
+    ).join('');
+    document.getElementById('methodList').innerHTML = html;
+    selectedMethod = null;
+    document.getElementById('btnStartTimer').disabled = true;
+    showSection(1);
+  }
+
+  function selectMethod(i) {
+    document.querySelectorAll('.method-card').forEach(c => c.classList.remove('active'));
+    document.getElementById('mc' + i).classList.add('active');
+    selectedMethod = methods[selectedSit][i];
+    document.getElementById('btnStartTimer').disabled = false;
+  }
+
+  function startTimer() {
+    if (!selectedMethod) return;
+    document.getElementById('timerMethodName').textContent = selectedMethod.emoji + ' ' + selectedMethod.name;
+    const ba = document.getElementById('breathingArea');
+    if (selectedMethod.breathing) {
+      ba.innerHTML = `<div class="breathe-circle">🫁</div><div class="breathe-label">跟著圓圈節奏深呼吸</div>`;
+    } else {
+      ba.innerHTML = '';
+    }
+    timeLeft = TOTAL;
+    updateTimerDisplay();
+    document.getElementById('timerMsg').innerHTML = '準備好了就按開始 🧚';
+    document.getElementById('btnTimerStart').disabled = false;
+    document.getElementById('btnTimerStart').textContent = '▶ 開始計時';
+    showSection(2);
+  }
+
+  function runTimer() {
+    if (timerInterval) return;
+    document.getElementById('btnTimerStart').disabled = true;
+    document.getElementById('btnTimerBack').disabled = true;
+    document.getElementById('btnTimerStart').textContent = '計時中…';
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      updateTimerDisplay();
+      updateMsg();
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        successCount++;
+        localStorage.setItem('cravingWins', successCount);
+        document.getElementById('successStreak').textContent = '今天已撐過 ' + successCount + ' 次菸癮 🏆';
+        setTimeout(() => showSection(3), 600);
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    const m = Math.floor(timeLeft / 60);
+    const s = timeLeft % 60;
+    document.getElementById('timerNum').textContent = m + ':' + String(s).padStart(2,'0');
+    const ratio = timeLeft / TOTAL;
+    document.getElementById('timerCircle').style.strokeDashoffset = 427 * (1 - ratio);
+    document.getElementById('progressFill').style.width = (ratio * 100) + '%';
+    const hue = Math.round(ratio * 30);
+    document.getElementById('timerCircle').style.stroke = ratio > 0.3 ? 'var(--orange)' : 'var(--green)';
+  }
+
+  function updateMsg() {
+    for (const [hi, lo, msg] of timerMsgs) {
+      if (timeLeft <= hi && timeLeft > lo) {
+        document.getElementById('timerMsg').innerHTML = msg;
+        break;
+      }
+    }
+  }
+
+  function goBack(step) {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    showSection(step);
+  }
+
+  function resetAll() {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    selectedSit = null;
+    selectedMethod = null;
+    timeLeft = TOTAL;
+    document.querySelectorAll('.sit-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('btnNext0').disabled = true;
+    showSection(0);
+  }
+
+  function showSection(n) {
+    [0,1,2,3].forEach(i => {
+      document.getElementById('sec' + i).classList.toggle('active', i === n);
+      if (i < 3) {
+        const dot = document.getElementById('dot' + i);
+        if (i < n) dot.className = 'step-dot done';
+        else if (i === n) dot.className = 'step-dot active';
+        else dot.className = 'step-dot';
+      }
+    });
+  }
+</script>
+</body>
+</html>
